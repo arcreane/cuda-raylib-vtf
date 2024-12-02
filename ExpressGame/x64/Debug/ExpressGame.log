@@ -1,0 +1,3 @@
+﻿     Création de la bibliothèque D:\5A\GPU\project\cuda-raylib-vtf\ExpressGame\x64\Debug\ExpressGame.lib et de l'objet D:\5A\GPU\project\cuda-raylib-vtf\ExpressGame\x64\Debug\ExpressGame.exp
+LINK : warning LNK4098: conflit entre la bibliothèque par défaut 'LIBCMT' et les autres bibliothèques ; utilisez /NODEFAULTLIB:library
+  ExpressGame.vcxproj -> D:\5A\GPU\project\cuda-raylib-vtf\ExpressGame\x64\Debug\ExpressGame.exe
