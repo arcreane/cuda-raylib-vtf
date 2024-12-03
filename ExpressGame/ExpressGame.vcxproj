@@ -47,13 +47,23 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+<<<<<<< HEAD
+      <PrecompiledHeaderFile />
+      <AdditionalIncludeDirectories>raylib.lib;winmm.lib;%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
+=======
       <AdditionalIncludeDirectories>C:\Users\thiba\Documents\raylib-5.0_win64_msvc16\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+>>>>>>> main
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+<<<<<<< HEAD
+      <AdditionalDependencies>raylib.dll;raylib.lib;winmm.lib;cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(CudaToolkitLibDir);$(raylib)\lib</AdditionalLibraryDirectories>
+=======
       <AdditionalDependencies>raylib.lib;winmm.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\thiba\Documents\raylib-5.0_win64_msvc16\lib;$(CudaToolkitLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+>>>>>>> main
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -105,6 +115,18 @@
   <ItemGroup>
     <ClCompile Include="interaction.cpp" />
     <ClCompile Include="renderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="interaction.cpp" />
+    <ClCompile Include="particle.cpp" />
+    <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="interaction.hpp" />
+    <ClInclude Include="particle.hpp" />
+    <ClInclude Include="renderer.hpp" />
+    <ClInclude Include="utils.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
