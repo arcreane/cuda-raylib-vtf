@@ -2,33 +2,47 @@
 #include <vector>
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
+#include <cmath>
 
 // Structure pour une particule
 struct Particle {
     float x, y; // Position
     unsigned char r, g, b, a; // Couleur
+    bool active; // Statut de la particule (active/inactive)
 };
 
-// Kernel CUDA pour mettre à jour les positions des particules
-__global__ void UpdateParticles(Particle* particles, int numParticles, int screenWidth, int screenHeight, unsigned int seed) {
+// Kernel CUDA pour mettre à jour les particules
+__global__ void UpdateParticlesWithTarget(Particle* particles, int numParticles, float mouseX, float mouseY,
+    float targetX, float targetY, float targetRadius, bool attract,
+    float influenceRadius, int* score, float speed) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < numParticles) {
-        // Initialisation du générateur aléatoire
-        curandState state;
-        curand_init(seed, idx, 0, &state);
+    if (idx < numParticles && particles[idx].active) {
+        float dxMouse = mouseX - particles[idx].x;
+        float dyMouse = mouseY - particles[idx].y;
+        float mouseDistance = sqrtf(dxMouse * dxMouse + dyMouse * dyMouse);
 
-        // Génération aléatoire
-        float dx = curand_uniform(&state) * 2.0f - 1.0f; // Valeur entre -1 et 1
-        float dy = curand_uniform(&state) * 2.0f - 1.0f;
+        // Influence de la souris
+        if (mouseDistance < influenceRadius && mouseDistance > 0.1f) {
+            float factor = attract ? speed : -speed; // Utiliser la vitesse ajustable
+            particles[idx].x += factor * dxMouse / mouseDistance;
+            particles[idx].y += factor * dyMouse / mouseDistance;
+        }
 
-        particles[idx].x += dx;
-        particles[idx].y += dy;
+        // Vérification si la particule atteint la cible
+        float dxTarget = targetX - particles[idx].x;
+        float dyTarget = targetY - particles[idx].y;
+        float targetDistance = sqrtf(dxTarget * dxTarget + dyTarget * dyTarget);
+
+        if (targetDistance < targetRadius) {
+            particles[idx].active = false; // Désactiver la particule
+            atomicAdd(score, 1); // Incrémenter le score
+        }
 
         // Gestion des bords
         if (particles[idx].x < 0) particles[idx].x = 0;
-        if (particles[idx].x > screenWidth) particles[idx].x = screenWidth;
+        if (particles[idx].x > 800) particles[idx].x = 800;
         if (particles[idx].y < 0) particles[idx].y = 0;
-        if (particles[idx].y > screenHeight) particles[idx].y = screenHeight;
+        if (particles[idx].y > 600) particles[idx].y = 600;
     }
 }
 
@@ -40,7 +54,7 @@ Particle* InitializeParticlesGPU(int numParticles, int screenWidth, int screenHe
     for (int i = 0; i < numParticles; i++) {
         hostParticles[i] = { (float)(rand() % screenWidth), (float)(rand() % screenHeight),
                              (unsigned char)(rand() % 256), (unsigned char)(rand() % 256),
-                             (unsigned char)(rand() % 256), 255 };
+                             (unsigned char)(rand() % 256), 255, true };
     }
 
     // Copier les données vers le GPU
@@ -55,35 +69,97 @@ int main() {
     const int screenWidth = 800;
     const int screenHeight = 600;
     const int numParticles = 1000;
+    const float influenceRadius = 150.0f; // Rayon d'influence de la souris
+    const float targetRadius = 20.0f;     // Rayon de la cible
 
-    InitWindow(screenWidth, screenHeight, "Simulation CUDA - Particules");
+    InitWindow(screenWidth, screenHeight, "Simulation CUDA - Victoire");
 
     // Initialisation des particules sur le GPU
     Particle* deviceParticles = InitializeParticlesGPU(numParticles, screenWidth, screenHeight);
 
+    // Initialisation du score sur le GPU
+    int* deviceScore;
+    int hostScore = 0;
+    cudaMalloc(&deviceScore, sizeof(int));
+    cudaMemcpy(deviceScore, &hostScore, sizeof(int), cudaMemcpyHostToDevice);
+
+    // Position de la cible (centrée au début)
+    float targetX = screenWidth / 2.0f;
+    float targetY = screenHeight / 2.0f;
+
+    // Vitesse initiale
+    float speed = 1.0f;
+
     // Boucle principale
-    while (!WindowShouldClose()) {
-        // Lancer le kernel CUDA pour mettre à jour les particules
+    bool victory = false;
+    while (!WindowShouldClose() && !victory) {
+        // Contrôle de la vitesse
+        if (IsKeyDown(KEY_UP)) speed += 0.1f;   // Augmenter la vitesse
+        if (IsKeyDown(KEY_DOWN)) speed -= 0.1f; // Réduire la vitesse
+        if (speed < 0.1f) speed = 0.1f;         // Vitesse minimale
+
+        // Interaction utilisateur
+        float mouseX = GetMouseX();
+        float mouseY = GetMouseY();
+        bool attract = IsMouseButtonDown(MOUSE_BUTTON_LEFT); // Attraction
+        bool repel = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);  // Répulsion
+
+        // Mise à jour des particules avec CUDA
         int blockSize = 256;
         int numBlocks = (numParticles + blockSize - 1) / blockSize;
-        unsigned int seed = time(nullptr); // Seed basé sur l'heure actuelle
-        UpdateParticles << <numBlocks, blockSize >> > (deviceParticles, numParticles, screenWidth, screenHeight, seed);
+        UpdateParticlesWithTarget << <numBlocks, blockSize >> > (deviceParticles, numParticles, mouseX, mouseY,
+            targetX, targetY, targetRadius, attract,
+            influenceRadius, deviceScore, speed);
 
-        // Copier les données du GPU vers le CPU pour affichage
+        // Copier le score pour vérification de la victoire
+        cudaMemcpy(&hostScore, deviceScore, sizeof(int), cudaMemcpyDeviceToHost);
+
+        // Vérifier si toutes les particules ont atteint la cible
+        if (hostScore >= numParticles) {
+            victory = true;
+        }
+
+        // Copier les particules pour affichage
         std::vector<Particle> hostParticles(numParticles);
         cudaMemcpy(hostParticles.data(), deviceParticles, numParticles * sizeof(Particle), cudaMemcpyDeviceToHost);
 
-        // Dessiner les particules
+        // Affichage
         BeginDrawing();
         ClearBackground(BLACK);
+
+        // Dessiner la cible
+        DrawCircle((int)targetX, (int)targetY, targetRadius, RED);
+
+        // Dessiner les particules actives
         for (const auto& particle : hostParticles) {
-            DrawCircle((int)particle.x, (int)particle.y, 2.0f, { particle.r, particle.g, particle.b, particle.a });
+            if (particle.active) {
+                DrawCircle((int)particle.x, (int)particle.y, 2.0f, { particle.r, particle.g, particle.b, particle.a });
+            }
         }
+
+        // Afficher le score
+        DrawText(TextFormat("Score: %d", hostScore), 10, 10, 20, WHITE);
+        DrawText(TextFormat("Speed: %.2f", speed), 10, 40, 20, GRAY);
+        DrawText("Cible rouge: attirer les particules | Haut/Bas: changer vitesse", 10, 70, 20, GRAY);
+
         EndDrawing();
     }
 
+    // Affichage de la victoire
+    if (victory) {
+        while (!WindowShouldClose()) {
+            BeginDrawing();
+            ClearBackground(BLACK);
+            DrawText("VICTOIRE !", screenWidth / 2 - 100, screenHeight / 2 - 20, 40, GREEN);
+            DrawText("Appuyez sur Echap pour quitter.", screenWidth / 2 - 150, screenHeight / 2 + 30, 20, WHITE);
+            EndDrawing();
+        }
+    }
+
+
     // Libérer la mémoire GPU
     cudaFree(deviceParticles);
+    cudaFree(deviceScore);
     CloseWindow();
     return 0;
 }
