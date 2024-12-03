@@ -103,6 +103,9 @@
     <ClInclude Include="renderer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Media Include="hyper.mp3" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="interaction.cpp" />
     <ClCompile Include="renderer.cpp" />
   </ItemGroup>

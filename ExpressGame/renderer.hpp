@@ -1,5 +1,3 @@
-#include "raylib.h"
-
 // Fonction pour initialiser la fenêtre et les ressources
 void InitGameWindow(int screenWidth, int screenHeight);
 
