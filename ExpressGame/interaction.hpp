@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef INTERACTION_HPP
 #define INTERACTION_HPP
 
@@ -19,3 +20,8 @@ void handle_keyboard_input(Renderer& renderer, std::vector<InteractionField>& fi
 void apply_interaction_fields(std::vector<Particle>& particles, const std::vector<InteractionField>& fields, float delta_time);
 
 #endif // INTERACTION_HPP
+=======
+// Fonction pour gérer les entrées utilisateur
+#include "raylib.h"
+void ProcessUserInput(float& speed, float& mouseX, float& mouseY, bool& attract, bool& repel);
+>>>>>>> main

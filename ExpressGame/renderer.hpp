@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
@@ -25,3 +26,13 @@ private:
 };
 
 #endif // RENDERER_HPP
+=======
+#include "raylib.h"
+
+// Fonction pour initialiser la fenêtre et les ressources
+void InitGameWindow(int screenWidth, int screenHeight);
+
+// Fonction pour afficher l'écran de victoire
+void DrawVictoryScreen(int screenWidth, int screenHeight);
+
+>>>>>>> main
