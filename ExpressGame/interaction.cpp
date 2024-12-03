@@ -1,5 +1,4 @@
 #include "interaction.hpp"
-
 void ProcessUserInput(float& speed, float& mouseX, float& mouseY, bool& attract, bool& repel) {
     // Contrôle de la vitesse
     if (IsKeyDown(KEY_UP)) speed += 0.1f;   // Augmenter la vitesse
