@@ -1,3 +1,4 @@
+#include "raylib.h"
 #include "renderer.hpp"
 
 // Fonction pour initialiser la fenêtre et les ressources
