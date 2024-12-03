@@ -1,3 +1,4 @@
+#include "raylib.h"
 #include "interaction.hpp"
 void ProcessUserInput(float& speed, float& mouseX, float& mouseY, bool& attract, bool& repel) {
     // Contrôle de la vitesse
