@@ -1,8 +1,10 @@
 #include "raylib.h"
 
-// Fonction pour initialiser la fenêtre et les ressources
-void InitGameWindow(int screenWidth, int screenHeight);
+// Fonction pour initialiser la fenï¿½tre et les ressources
+void InitGameWindow(int screenWidth, int screenHeight) {
+    InitWindow(screenWidth, screenHeight, "A game about particles");
+}
 
-// Fonction pour afficher l'écran de victoire
+// Fonction pour afficher l'ï¿½cran de victoire
 void DrawVictoryScreen(int screenWidth, int screenHeight);
 

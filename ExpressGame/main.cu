@@ -20,6 +20,11 @@ int main() {
     // Initialiser la fenêtre
     InitGameWindow(screenWidth, screenHeight);
 
+    // Sound
+    InitAudioDevice();
+    Music music = LoadMusicStream("hyper.mp3");
+    PlayMusicStream(music);
+
     // Initialiser les particules sur le GPU
     Particle* deviceParticles = InitializeParticlesGPU(numParticles, screenWidth, screenHeight);
 
@@ -43,6 +48,9 @@ int main() {
     while (!WindowShouldClose() && !victory) {
         float mouseX, mouseY;
         bool attract = false, repel = false;
+
+        // Maj lecture musique
+        UpdateMusicStream(music);
 
         // Gérer les entrées utilisateur (vitesse, position de la souris, etc.)
         ProcessUserInput(speed, mouseX, mouseY, attract, repel);
@@ -87,12 +95,21 @@ int main() {
 
     // Affichage de la victoire
     if (victory) {
-        DrawVictoryScreen(screenWidth, screenHeight);
+        while (!WindowShouldClose()) {
+            DrawVictoryScreen(screenWidth, screenHeight);
+        }
     }
 
     // Libérer la mémoire GPU
     cudaFree(deviceParticles);
     cudaFree(deviceScore);
+
+    // Unload music stream buffers from RAM
+    UnloadMusicStream(music);   
+
+    // Close audio device (music streaming is automatically stopped)
+    CloseAudioDevice();       
+
     CloseWindow();
     return 0;
 }
