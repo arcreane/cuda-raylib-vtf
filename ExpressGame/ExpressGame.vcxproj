@@ -102,6 +102,10 @@
     <ClInclude Include="particle_simulation.cuh" />
     <ClInclude Include="renderer.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="interaction.cpp" />
+    <ClCompile Include="renderer.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.6.targets" />
