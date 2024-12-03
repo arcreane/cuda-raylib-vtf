@@ -105,6 +105,10 @@
   <ItemGroup>
     <Media Include="hyper.mp3" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="interaction.cpp" />
+    <ClCompile Include="renderer.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.6.targets" />
