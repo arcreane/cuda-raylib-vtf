@@ -6,13 +6,14 @@
 
 // Structure pour une particule
 struct Particle {
-    float x, y; // Position
+    float x, y;         // Position
+    float dx, dy;       // Direction de déplacement
     unsigned char r, g, b, a; // Couleur
-    bool active; // Statut de la particule (active/inactive)
+    bool active;        // Statut de la particule (active/inactive)
 };
 
 // Kernel CUDA pour mettre à jour les particules
-__global__ void UpdateParticlesWithTarget(Particle* particles, int numParticles, float mouseX, float mouseY,
+__global__ void UpdateParticlesWithMotion(Particle* particles, int numParticles, float mouseX, float mouseY,
     float targetX, float targetY, float targetRadius, bool attract,
     float influenceRadius, int* score, float speed) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -23,9 +24,14 @@ __global__ void UpdateParticlesWithTarget(Particle* particles, int numParticles,
 
         // Influence de la souris
         if (mouseDistance < influenceRadius && mouseDistance > 0.1f) {
-            float factor = attract ? speed : -speed; // Utiliser la vitesse ajustable
+            float factor = attract ? speed : -speed; // Attraction ou répulsion
             particles[idx].x += factor * dxMouse / mouseDistance;
             particles[idx].y += factor * dyMouse / mouseDistance;
+        }
+        else {
+            // Mouvement constant
+            particles[idx].x += particles[idx].dx;
+            particles[idx].y += particles[idx].dy;
         }
 
         // Vérification si la particule atteint la cible
@@ -39,10 +45,8 @@ __global__ void UpdateParticlesWithTarget(Particle* particles, int numParticles,
         }
 
         // Gestion des bords
-        if (particles[idx].x < 0) particles[idx].x = 0;
-        if (particles[idx].x > 800) particles[idx].x = 800;
-        if (particles[idx].y < 0) particles[idx].y = 0;
-        if (particles[idx].y > 600) particles[idx].y = 600;
+        if (particles[idx].x < 0 || particles[idx].x > 800) particles[idx].dx *= -1.0f;
+        if (particles[idx].y < 0 || particles[idx].y > 600) particles[idx].dy *= -1.0f;
     }
 }
 
@@ -52,10 +56,20 @@ Particle* InitializeParticlesGPU(int numParticles, int screenWidth, int screenHe
 
     // Initialisation des particules sur le CPU
     for (int i = 0; i < numParticles; i++) {
-        hostParticles[i] = { (float)(rand() % screenWidth), (float)(rand() % screenHeight),
-                             (unsigned char)(rand() % 256), (unsigned char)(rand() % 256),
-                             (unsigned char)(rand() % 256), 255, true };
+        float angle = (float)(rand() % 360) * DEG2RAD; // Direction aléatoire
+        hostParticles[i] = {
+            (float)(rand() % screenWidth),
+            (float)(rand() % screenHeight),
+            cosf(angle) * 0.5f, // Mouvement en X
+            sinf(angle) * 0.5f, // Mouvement en Y
+            (unsigned char)(rand() % 256),
+            (unsigned char)(rand() % 256),
+            (unsigned char)(rand() % 256),
+            255,
+            true
+        };
     }
+
 
     // Copier les données vers le GPU
     Particle* deviceParticles;
@@ -107,7 +121,7 @@ int main() {
         // Mise à jour des particules avec CUDA
         int blockSize = 256;
         int numBlocks = (numParticles + blockSize - 1) / blockSize;
-        UpdateParticlesWithTarget << <numBlocks, blockSize >> > (deviceParticles, numParticles, mouseX, mouseY,
+        UpdateParticlesWithMotion << <numBlocks, blockSize >> > (deviceParticles, numParticles, mouseX, mouseY,
             targetX, targetY, targetRadius, attract,
             influenceRadius, deviceScore, speed);
 
