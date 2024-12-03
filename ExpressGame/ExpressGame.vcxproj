@@ -102,6 +102,9 @@
     <ClInclude Include="particle_simulation.cuh" />
     <ClInclude Include="renderer.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="hyper.mp3" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.6.targets" />

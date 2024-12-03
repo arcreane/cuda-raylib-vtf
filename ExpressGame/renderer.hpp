@@ -1,6 +1,6 @@
 // Fonction pour initialiser la fenêtre et les ressources
 void InitGameWindow(int screenWidth, int screenHeight) {
-    InitWindow(screenWidth, screenHeight, "Simulation CUDA - Victoire");
+    InitWindow(screenWidth, screenHeight, "A game about particles");
 }
 
 // Fonction pour afficher l'écran de victoire
