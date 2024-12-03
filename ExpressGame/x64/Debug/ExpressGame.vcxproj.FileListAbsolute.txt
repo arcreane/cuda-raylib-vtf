@@ -1,2 +1,0 @@
-D:\5A\GPU\ExpressGameRepo\ExpressGame\x64\Debug\ExpressGame.exe
-D:\5A\GPU\project\cuda-raylib-vtf\ExpressGame\x64\Debug\ExpressGame.exe
