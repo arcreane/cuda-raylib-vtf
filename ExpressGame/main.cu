@@ -7,6 +7,8 @@
 #include "interaction.hpp"
 #include "timer.hpp"
 #include "particle_simulation.cuh"
+#include "cursor.hpp"
+#include "intro_screen.hpp"
 
 int main() {
     /*
@@ -18,7 +20,7 @@ int main() {
     const int numObstacles = 3;           // Number of obstacles
     const float influenceRadius = 150.0f; // Mouse influence radius
     const float targetRadius = 25.0f;     // Target radius
-    const float duration = 60.0f;
+    const float duration = 2.0f;
 
     // Obstacles definition
     Obstacle obstacles[numObstacles] = {
@@ -27,12 +29,15 @@ int main() {
         {600.0f, 100.0f, 80.0f, 200.0f}
     };
 
+
     /*
      * Initialization
      */
     InitGameWindow(screenWidth, screenHeight);
     InitAudioDevice();
-    Music music = LoadMusicStream("hyper.mp3");
+
+    
+    
 
     SetTargetFPS(60);
 
@@ -40,10 +45,23 @@ int main() {
     bool isTryAgain;
 
     do {
+        // Create intro screen
+        IntroScreen intro("Space Particle Collector", "cursor_entry.png");
+
+        // Show intro screen
+        IntroScreenResult result = intro.Show();
+
+        Music music = LoadMusicStream("hyper.mp3");
         isTryAgain = false;
         // Initialize game state
         Timer timer(duration);
         PlayMusicStream(music);
+
+        Cursor cursor = Cursor();
+        cursor.texture = LoadTexture("cursor.png");
+        cursor.rect = { 0.0f, 0.0f, 30.0f, 40.0f };
+        cursor.position = { 0.0f, 0.0f };
+        HideCursor();
 
         // CUDA memory allocations
         Particle* deviceParticles = InitializeParticlesGPU(numParticles, screenWidth, screenHeight, obstacles, numObstacles);
@@ -67,11 +85,15 @@ int main() {
             float mouseX = 0.0f, mouseY = 0.0f;
             bool attract = false, repel = false;
 
+            
+
             // Update logic
             timer.Update();
             UpdateMusicStream(music);
             ProcessUserInput(speed, mouseX, mouseY, attract, repel);
 
+            cursor.position = Vector2{mouseX, mouseY};
+            
             // CUDA kernel call for particle updates
             int blockSize = 256;
             int numBlocks = (numParticles + blockSize - 1) / blockSize;
@@ -88,6 +110,9 @@ int main() {
             // Rendering
             BeginDrawing();
             ClearBackground(BLACK);
+
+            DrawTextureRec(cursor.texture, cursor.rect, cursor.position, WHITE);
+
 
             DrawCircle((int)targetX, (int)targetY, targetRadius, RED);
             std::vector<Particle> hostParticles(numParticles);
@@ -114,19 +139,33 @@ int main() {
             // Timer expired
             if (timer.IsTimeUp()) break;
         }
-
+        //StopMusicStream(music);
+        UnloadMusicStream(music);
         // Victory or defeat screen
-        if (victory) {
+        // Victory or defeat screen
+        if (!victory) {
+            music = LoadMusicStream("objective_complete.mp3");
+            PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
                 DrawVictoryScreen(screenWidth, screenHeight);
                 if (IsKeyDown(KEY_R)) isTryAgain = true;
+
+                UpdateMusicStream(music); // Update music stream to ensure proper playback
             }
+            UnloadMusicStream(music);
+            //StopMusicStream(music);
         }
         else {
+            music = LoadMusicStream("mission_failed_mw3.mp3");
+            PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
                 DrawDefeatScreen(screenWidth, screenHeight);
                 if (IsKeyDown(KEY_R)) isTryAgain = true;
+
+                UpdateMusicStream(music); // Update music stream to ensure proper playback
             }
+            //StopMusicStream(music);
+            UnloadMusicStream(music);
         }
 
         // Free resources
@@ -137,7 +176,7 @@ int main() {
     } while (isTryAgain);
 
     // Final cleanup
-    UnloadMusicStream(music);
+    
     CloseAudioDevice();
     CloseWindow();
 
