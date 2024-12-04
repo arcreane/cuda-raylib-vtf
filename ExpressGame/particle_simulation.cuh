@@ -20,7 +20,7 @@ struct Obstacle {
 
 #ifndef PARTICLE_SIMULATION_CUH
 // Prototypes de fonctions
-Particle* InitializeParticlesGPU(int numParticles, int screenWidth, int screenHeight);
+Particle* InitializeParticlesGPU(int numParticles, int screenWidth, int screenHeight, Obstacle* obstacles, int numObstacles);
 void UpdateParticles(Particle* deviceParticles, int numParticles, Obstacle* obstacles, int numObstacles,
     float mouseX, float mouseY, float targetX, float targetY, float targetRadius,
     bool attract, float influenceRadius, int* deviceScore, float speed);
