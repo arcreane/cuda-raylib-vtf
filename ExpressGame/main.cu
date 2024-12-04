@@ -143,7 +143,7 @@ int main() {
         UnloadMusicStream(music);
         // Victory or defeat screen
         // Victory or defeat screen
-        if (victory) {
+        if (!victory) {
             music = LoadMusicStream("objective_complete.mp3");
             PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
@@ -152,6 +152,7 @@ int main() {
 
                 UpdateMusicStream(music); // Update music stream to ensure proper playback
             }
+            UnloadMusicStream(music);
             //StopMusicStream(music);
         }
         else {
