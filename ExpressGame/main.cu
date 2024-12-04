@@ -18,7 +18,7 @@ int main() {
     const int numObstacles = 3;           // Number of obstacles
     const float influenceRadius = 150.0f; // Mouse influence radius
     const float targetRadius = 25.0f;     // Target radius
-    const float duration = 30.0f;
+    const float duration = 60.0f;
 
     // Obstacles definition
     Obstacle obstacles[numObstacles] = {
@@ -46,7 +46,7 @@ int main() {
         PlayMusicStream(music);
 
         // CUDA memory allocations
-        Particle* deviceParticles = InitializeParticlesGPU(numParticles, screenWidth, screenHeight);
+        Particle* deviceParticles = InitializeParticlesGPU(numParticles, screenWidth, screenHeight, obstacles, numObstacles);
         Obstacle* deviceObstacles = nullptr;
         int* deviceScore = nullptr;
         int hostScore = 0;

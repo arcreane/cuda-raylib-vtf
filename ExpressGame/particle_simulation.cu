@@ -66,23 +66,44 @@ __global__ void UpdateParticlesWithMotion(Particle* particles, int numParticles,
 }
 
 // Fonction pour initialiser les particules sur le GPU
-Particle* InitializeParticlesGPU(int numParticles, int screenWidth, int screenHeight) {
+Particle* InitializeParticlesGPU(int numParticles, int screenWidth, int screenHeight,
+    Obstacle* obstacles, int numObstacles) {
     std::vector<Particle> hostParticles(numParticles);
 
-    // Initialisation des particules sur le CPU
     for (int i = 0; i < numParticles; i++) {
-        float angle = (float)(rand() % 360) * DEG2RAD; // Direction aléatoire
-        hostParticles[i] = {
-            (float)(rand() % screenWidth),
-            (float)(rand() % screenHeight),
-            cosf(angle) * 0.5f, // Mouvement en X
-            sinf(angle) * 0.5f, // Mouvement en Y
-            (unsigned char)(rand() % 256),
-            (unsigned char)(rand() % 256),
-            (unsigned char)(rand() % 256),
-            255,
-            true
-        };
+        bool validPosition = false;
+
+        while (!validPosition) {
+            // Générer une position aléatoire pour la particule
+            float x = static_cast<float>(rand() % screenWidth);
+            float y = static_cast<float>(rand() % screenHeight);
+
+            // Vérifier si la position est valide (pas dans un obstacle)
+            validPosition = true;
+            for (int j = 0; j < numObstacles; j++) {
+                Obstacle obs = obstacles[j];
+                if (x > obs.x && x < obs.x + obs.width &&
+                    y > obs.y && y < obs.y + obs.height) {
+                    validPosition = false; // La position est invalide
+                    break;
+                }
+            }
+
+            // Si la position est valide, assigner les coordonnées
+            if (validPosition) {
+                float angle = static_cast<float>(rand() % 360) * 3.14159f / 180.0f; // Angle aléatoire
+                hostParticles[i] = {
+                    x, y,                              // Position
+                    cosf(angle) * 0.5f,               // Direction en X
+                    sinf(angle) * 0.5f,               // Direction en Y
+                    static_cast<unsigned char>(rand() % 256), // Couleur R
+                    static_cast<unsigned char>(rand() % 256), // Couleur G
+                    static_cast<unsigned char>(rand() % 256), // Couleur B
+                    255,                              // Couleur A
+                    true                              // Particule active
+                };
+            }
+        }
     }
 
     // Copier les données vers le GPU
