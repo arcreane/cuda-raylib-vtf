@@ -1,7 +1,8 @@
 #include "particle_simulation.cuh"
 
-__global__ void UpdateParticlesWithMotion(Particle* particles, int numParticles, float mouseX, float mouseY,
-    float targetX, float targetY, float targetRadius, bool attract,
+__global__ void UpdateParticlesWithMotion(Particle* particles, int numParticles, Obstacle* obstacles,
+    int numObstacles, float mouseX, float mouseY, float targetX,
+    float targetY, float targetRadius, bool attract,
     float influenceRadius, int* score, float speed) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < numParticles && particles[idx].active) {
@@ -11,24 +12,40 @@ __global__ void UpdateParticlesWithMotion(Particle* particles, int numParticles,
 
         // Influence de la souris
         if (mouseDistance < influenceRadius && mouseDistance > 0.1f) {
-            float factor = attract ? speed : -speed; // Attraction ou répulsion
+            float factor = attract ? speed : -speed;
             particles[idx].x += factor * dxMouse / mouseDistance;
             particles[idx].y += factor * dyMouse / mouseDistance;
         }
         else {
+            float dxTarget = targetX - particles[idx].x;
+            float dyTarget = targetY - particles[idx].y;
+            float targetDistance = sqrtf(dxTarget * dxTarget + dyTarget * dyTarget);
+
+            // Logique de capture (zone intérieure)
+            if (targetDistance < targetRadius) {
+                particles[idx].active = false; // Désactiver la particule
+                atomicAdd(score, 1); // Marquer un point
+            }
+            // Logique d'évitement (zone extérieure)
+            else if (targetDistance < targetRadius + 10.0f) {
+                particles[idx].dx = -dxTarget / targetDistance;
+                particles[idx].dy = -dyTarget / targetDistance;
+            }
+
             // Mouvement constant
-            particles[idx].x += particles[idx].dx;
-            particles[idx].y += particles[idx].dy;
+            particles[idx].x += particles[idx].dx * speed;
+            particles[idx].y += particles[idx].dy * speed;
         }
 
-        // Vérification si la particule atteint la cible
-        float dxTarget = targetX - particles[idx].x;
-        float dyTarget = targetY - particles[idx].y;
-        float targetDistance = sqrtf(dxTarget * dxTarget + dyTarget * dyTarget);
-
-        if (targetDistance < targetRadius) {
-            particles[idx].active = false; // Désactiver la particule
-            atomicAdd(score, 1); // Incrémenter le score
+        // Vérification de collision avec les obstacles
+        for (int i = 0; i < numObstacles; i++) {
+            Obstacle obs = obstacles[i];
+            if (particles[idx].x > obs.x && particles[idx].x < obs.x + obs.width &&
+                particles[idx].y > obs.y && particles[idx].y < obs.y + obs.height) {
+                // Inverser la direction en cas de collision
+                particles[idx].dx *= -1.0f;
+                particles[idx].dy *= -1.0f;
+            }
         }
 
         // Gestion des bords
@@ -66,12 +83,13 @@ Particle* InitializeParticlesGPU(int numParticles, int screenWidth, int screenHe
 }
 
 // Fonction pour mettre à jour les particules
-void UpdateParticles(Particle* deviceParticles, int numParticles, float mouseX, float mouseY, float targetX,
-    float targetY, float targetRadius, bool attract, float influenceRadius,
-    int* deviceScore, float speed) {
+void UpdateParticles(Particle* deviceParticles, int numParticles, Obstacle* deviceObstacles, int numObstacles,
+    float mouseX, float mouseY, float targetX, float targetY, float targetRadius, bool attract,
+    float influenceRadius, int* deviceScore, float speed) {
     int blockSize = 256;
     int numBlocks = (numParticles + blockSize - 1) / blockSize;
-    UpdateParticlesWithMotion << <numBlocks, blockSize >> > (deviceParticles, numParticles, mouseX, mouseY,
-        targetX, targetY, targetRadius, attract,
-        influenceRadius, deviceScore, speed);
+
+    UpdateParticlesWithMotion << <numBlocks, blockSize >> > (deviceParticles, numParticles, deviceObstacles,
+        numObstacles, mouseX, mouseY, targetX, targetY,
+        targetRadius, attract, influenceRadius, deviceScore, speed);
 }
