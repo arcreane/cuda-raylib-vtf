@@ -14,10 +14,10 @@ int main() {
      */
     const int screenWidth = 800;
     const int screenHeight = 600;
-    const int numParticles = 1000;
-    const int numObstacles = 3;
+    const int numParticles = 1000;        // Number of particles
+    const int numObstacles = 3;           // Number of obstacles
     const float influenceRadius = 150.0f; // Mouse influence radius
-    const float targetRadius = 20.0f;     // Target radius
+    const float targetRadius = 25.0f;     // Target radius
     const float duration = 30.0f;
 
     // Obstacles definition

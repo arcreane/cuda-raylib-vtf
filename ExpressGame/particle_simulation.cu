@@ -5,50 +5,61 @@ __global__ void UpdateParticlesWithMotion(Particle* particles, int numParticles,
     float targetY, float targetRadius, bool attract,
     float influenceRadius, int* score, float speed) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
     if (idx < numParticles && particles[idx].active) {
+        float nextX = particles[idx].x; // Position prévue en X
+        float nextY = particles[idx].y; // Position prévue en Y
+
+        // Influence de la souris (attraction ou répulsion)
         float dxMouse = mouseX - particles[idx].x;
         float dyMouse = mouseY - particles[idx].y;
         float mouseDistance = sqrtf(dxMouse * dxMouse + dyMouse * dyMouse);
 
-        // Influence de la souris
         if (mouseDistance < influenceRadius && mouseDistance > 0.1f) {
             float factor = attract ? speed : -speed;
-            particles[idx].x += factor * dxMouse / mouseDistance;
-            particles[idx].y += factor * dyMouse / mouseDistance;
+            nextX += factor * dxMouse / mouseDistance; // Déplacement prévu en X
+            nextY += factor * dyMouse / mouseDistance; // Déplacement prévu en Y
         }
         else {
-            float dxTarget = targetX - particles[idx].x;
-            float dyTarget = targetY - particles[idx].y;
-            float targetDistance = sqrtf(dxTarget * dxTarget + dyTarget * dyTarget);
-
-            // Logique de capture (zone intérieure)
-            if (targetDistance < targetRadius) {
-                particles[idx].active = false; // Désactiver la particule
-                atomicAdd(score, 1); // Marquer un point
-            }
-            // Logique d'évitement (zone extérieure)
-            else if (targetDistance < targetRadius + 10.0f) {
-                particles[idx].dx = -dxTarget / targetDistance;
-                particles[idx].dy = -dyTarget / targetDistance;
-            }
-
-            // Mouvement constant
-            particles[idx].x += particles[idx].dx * speed;
-            particles[idx].y += particles[idx].dy * speed;
+            // Mouvement normal
+            nextX += particles[idx].dx * speed;
+            nextY += particles[idx].dy * speed;
         }
 
-        // Vérification de collision avec les obstacles
+        // Vérifier si la particule touche la cible
+        float dxTarget = targetX - nextX;
+        float dyTarget = targetY - nextY;
+        float targetDistance = sqrtf(dxTarget * dxTarget + dyTarget * dyTarget);
+
+        if (targetDistance < targetRadius) {
+            particles[idx].active = false; // Désactiver la particule
+            atomicAdd(score, 1);          // Marquer un point
+            return;                       // Arrêter le traitement pour cette particule
+        }
+
+        // Vérification des collisions avec les obstacles
+        bool collision = false;
         for (int i = 0; i < numObstacles; i++) {
             Obstacle obs = obstacles[i];
-            if (particles[idx].x > obs.x && particles[idx].x < obs.x + obs.width &&
-                particles[idx].y > obs.y && particles[idx].y < obs.y + obs.height) {
-                // Inverser la direction en cas de collision
-                particles[idx].dx *= -1.0f;
-                particles[idx].dy *= -1.0f;
+            if (nextX > obs.x && nextX < obs.x + obs.width &&
+                nextY > obs.y && nextY < obs.y + obs.height) {
+                collision = true;
+                break;
             }
         }
 
-        // Gestion des bords
+        // Appliquer le mouvement uniquement s'il n'y a pas de collision
+        if (!collision) {
+            particles[idx].x = nextX;
+            particles[idx].y = nextY;
+        }
+        else {
+            // Gérer le rebond en cas de collision
+            particles[idx].dx *= -1.0f;
+            particles[idx].dy *= -1.0f;
+        }
+
+        // Gestion des bords de l'écran
         if (particles[idx].x < 0 || particles[idx].x > 800) particles[idx].dx *= -1.0f;
         if (particles[idx].y < 0 || particles[idx].y > 600) particles[idx].dy *= -1.0f;
     }
