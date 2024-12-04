@@ -15,3 +15,12 @@ void DrawVictoryScreen(int screenWidth, int screenHeight) {
     EndDrawing();
 }
 
+// Fonction pour afficher l'écran de défaite
+void DrawDefeatScreen(int screenWidth, int screenHeight) {
+	BeginDrawing();
+	ClearBackground(BLACK);
+	DrawText("DEFAITE !", screenWidth / 2 - 100, screenHeight / 2 - 20, 40, RED);
+	DrawText("Appuyez sur Echap pour quitter.", screenWidth / 2 - 150, screenHeight / 2 + 30, 20, WHITE);
+	EndDrawing();
+}
+
