@@ -15,12 +15,13 @@ int main() {
     const int screenWidth = 800;
     const int screenHeight = 600;
     const int numParticles = 1000;
+    const int numObstacles = 3;
     const float influenceRadius = 150.0f; // Rayon d'influence de la souris
     const float targetRadius = 20.0f;     // Rayon de la cible
 
 
 
-    // Initialiser la fenêtre
+    // Initialiser la fenï¿½tre
     InitGameWindow(screenWidth, screenHeight);
 
     // Initialiser le timer
@@ -34,20 +35,31 @@ int main() {
     // Initialiser les particules sur le GPU
     Particle* deviceParticles = InitializeParticlesGPU(numParticles, screenWidth, screenHeight);
 
+    // Initialiser les obstacles
+    Obstacle obstacles[numObstacles] = {
+        {200.0f, 150.0f, 100.0f, 50.0f},
+        {500.0f, 300.0f, 150.0f, 50.0f},
+        {600.0f, 100.0f, 80.0f, 200.0f}
+    };
+
+    Obstacle* deviceObstacles;
+    cudaMalloc(&deviceObstacles, numObstacles * sizeof(Obstacle));
+    cudaMemcpy(deviceObstacles, obstacles, numObstacles * sizeof(Obstacle), cudaMemcpyHostToDevice);
+
     // Initialisation du score sur le GPU
     int* deviceScore;
     int hostScore = 0;
     cudaMalloc(&deviceScore, sizeof(int));
     cudaMemcpy(deviceScore, &hostScore, sizeof(int), cudaMemcpyHostToDevice);
 
-    // Position de la cible (centrée au début)
+    // Position de la cible (centrï¿½e au dï¿½but)
     float targetX = screenWidth / 2.0f;
     float targetY = screenHeight / 2.0f;
 
     // Vitesse initiale
     float speed = 1.0f;
 
-    // Détection de victoire
+    // Dï¿½tection de victoire
     bool victory = false;
 
     // Boucle principale
@@ -55,26 +67,26 @@ int main() {
         float mouseX, mouseY;
         bool attract = false, repel = false;
 
-        // Mettre à jour le timer
+        // Mettre ï¿½ jour le timer
         timer.Update();
         
 
         // Maj lecture musique
         UpdateMusicStream(music);
 
-        // Gérer les entrées utilisateur (vitesse, position de la souris, etc.)
+        // Gï¿½rer les entrï¿½es utilisateur (vitesse, position de la souris, etc.)
         ProcessUserInput(speed, mouseX, mouseY, attract, repel);
 
-        // Mise à jour des particules avec CUDA
+        // Mise ï¿½ jour des particules avec CUDA
         int blockSize = 256;
         int numBlocks = (numParticles + blockSize - 1) / blockSize;
-        UpdateParticles(deviceParticles, numParticles, mouseX, mouseY, targetX, targetY, targetRadius,
-            attract, influenceRadius, deviceScore, speed);
+        UpdateParticles(deviceParticles, numParticles, deviceObstacles, numObstacles, mouseX, mouseY, targetX,
+            targetY, targetRadius, attract, influenceRadius, deviceScore, speed);
 
-        // Copier le score pour vérifier la victoire
+        // Copier le score pour vï¿½rifier la victoire
         cudaMemcpy(&hostScore, deviceScore, sizeof(int), cudaMemcpyDeviceToHost);
 
-        // Vérifier la condition de victoire
+        // Vï¿½rifier la condition de victoire
         if (hostScore >= numParticles) {
             victory = true;
         }
@@ -95,8 +107,13 @@ int main() {
             }
         }
 
+        for (int i = 0; i < numObstacles; i++) {
+            DrawRectangle(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height, GRAY);
+        }
+
         // Afficher le score et la vitesse
-        DrawText(TextFormat("Score: %d", hostScore), 10, 10, 20, WHITE);
+        DrawText("Mettre les particules dans la cible rouge | Haut/Bas: changer vitesse", 10, 10, 20, GRAY);
+        DrawText(TextFormat("Score: %d", hostScore), 10, 70, 20, WHITE);
         DrawText(TextFormat("Speed: %.2f", speed), 10, 40, 20, GRAY);
         DrawText("Cible rouge: attirer les particules | Haut/Bas: changer vitesse", 10, 70, 20, GRAY);
         DrawText(timer.GetTimeLeft().c_str(), 10, 100, 20, WHITE);
@@ -111,8 +128,9 @@ int main() {
         }
     }
 
-    // Libérer la mémoire GPU
+    // Libï¿½rer la mï¿½moire GPU
     cudaFree(deviceParticles);
+    cudaFree(deviceObstacles);
     cudaFree(deviceScore);
 
     // Unload music stream buffers from RAM
