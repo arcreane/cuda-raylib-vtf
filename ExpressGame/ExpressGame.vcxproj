@@ -98,6 +98,7 @@
     <CudaCompile Include="particle_simulation.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cursor.hpp" />
     <ClInclude Include="interaction.hpp" />
     <ClInclude Include="particle_simulation.cuh" />
     <ClInclude Include="renderer.hpp" />
@@ -110,6 +111,10 @@
     <ClCompile Include="interaction.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="timer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cursor.png" />
+    <Image Include="cursor2.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
