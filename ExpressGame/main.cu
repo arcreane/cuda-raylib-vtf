@@ -8,6 +8,7 @@
 #include "timer.hpp"
 #include "particle_simulation.cuh"
 #include "cursor.hpp"
+#include "intro_screen.hpp"
 
 int main() {
     /*
@@ -19,7 +20,7 @@ int main() {
     const int numObstacles = 3;           // Number of obstacles
     const float influenceRadius = 150.0f; // Mouse influence radius
     const float targetRadius = 25.0f;     // Target radius
-    const float duration = 60.0f;
+    const float duration = 2.0f;
 
     // Obstacles definition
     Obstacle obstacles[numObstacles] = {
@@ -34,7 +35,9 @@ int main() {
      */
     InitGameWindow(screenWidth, screenHeight);
     InitAudioDevice();
-    Music music = LoadMusicStream("hyper.mp3");
+
+    
+    
 
     SetTargetFPS(60);
 
@@ -42,6 +45,13 @@ int main() {
     bool isTryAgain;
 
     do {
+        // Create intro screen
+        IntroScreen intro("Space Particle Collector", "cursor_entry.png");
+
+        // Show intro screen
+        IntroScreenResult result = intro.Show();
+
+        Music music = LoadMusicStream("hyper.mp3");
         isTryAgain = false;
         // Initialize game state
         Timer timer(duration);
@@ -129,19 +139,32 @@ int main() {
             // Timer expired
             if (timer.IsTimeUp()) break;
         }
-
+        //StopMusicStream(music);
+        UnloadMusicStream(music);
+        // Victory or defeat screen
         // Victory or defeat screen
         if (victory) {
+            music = LoadMusicStream("objective_complete.mp3");
+            PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
                 DrawVictoryScreen(screenWidth, screenHeight);
                 if (IsKeyDown(KEY_R)) isTryAgain = true;
+
+                UpdateMusicStream(music); // Update music stream to ensure proper playback
             }
+            //StopMusicStream(music);
         }
         else {
+            music = LoadMusicStream("mission_failed_mw3.mp3");
+            PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
                 DrawDefeatScreen(screenWidth, screenHeight);
                 if (IsKeyDown(KEY_R)) isTryAgain = true;
+
+                UpdateMusicStream(music); // Update music stream to ensure proper playback
             }
+            //StopMusicStream(music);
+            UnloadMusicStream(music);
         }
 
         // Free resources
@@ -152,7 +175,7 @@ int main() {
     } while (isTryAgain);
 
     // Final cleanup
-    UnloadMusicStream(music);
+    
     CloseAudioDevice();
     CloseWindow();
 
