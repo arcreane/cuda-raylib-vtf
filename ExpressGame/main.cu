@@ -18,7 +18,7 @@ int main() {
     const int numObstacles = 3;
     const float influenceRadius = 150.0f; // Mouse influence radius
     const float targetRadius = 20.0f;     // Target radius
-    const float duration = 3.0f;
+    const float duration = 30.0f;
 
     // Obstacles definition
     Obstacle obstacles[numObstacles] = {
