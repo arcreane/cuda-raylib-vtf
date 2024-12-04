@@ -5,6 +5,7 @@
 #include <cmath>
 #include "renderer.hpp"
 #include "interaction.hpp"
+#include "timer.hpp"
 #include "particle_simulation.cuh"
 
 
@@ -17,8 +18,13 @@ int main() {
     const float influenceRadius = 150.0f; // Rayon d'influence de la souris
     const float targetRadius = 20.0f;     // Rayon de la cible
 
+
+
     // Initialiser la fenêtre
     InitGameWindow(screenWidth, screenHeight);
+
+    // Initialiser le timer
+    Timer timer(30.0f);
 
     // Sound
     InitAudioDevice();
@@ -48,6 +54,10 @@ int main() {
     while (!WindowShouldClose() && !victory) {
         float mouseX, mouseY;
         bool attract = false, repel = false;
+
+        // Mettre à jour le timer
+        timer.Update();
+        
 
         // Maj lecture musique
         UpdateMusicStream(music);
@@ -89,6 +99,7 @@ int main() {
         DrawText(TextFormat("Score: %d", hostScore), 10, 10, 20, WHITE);
         DrawText(TextFormat("Speed: %.2f", speed), 10, 40, 20, GRAY);
         DrawText("Cible rouge: attirer les particules | Haut/Bas: changer vitesse", 10, 70, 20, GRAY);
+        DrawText(timer.GetTimeLeft().c_str(), 10, 100, 20, WHITE);
 
         EndDrawing();
     }
