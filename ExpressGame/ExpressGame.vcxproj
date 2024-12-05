@@ -98,18 +98,34 @@
     <CudaCompile Include="particle_simulation.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cursor.hpp" />
     <ClInclude Include="interaction.hpp" />
+    <ClInclude Include="intro_screen.hpp" />
     <ClInclude Include="particle_simulation.cuh" />
     <ClInclude Include="renderer.hpp" />
     <ClInclude Include="timer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Media Include="CourseClear.mp3" />
+    <Media Include="cantina.mp3" />
+    <Media Include="game_over.mp3" />
+    <Media Include="gta_mission_passed.mp3" />
+    <Media Include="halo_theme.mp3" />
     <Media Include="hyper.mp3" />
+    <Media Include="mission_failed_mw3.mp3" />
+    <Media Include="mission_lost.mp3" />
+    <Media Include="objective_complete.mp3" />
+    <Media Include="successful_mission.mp3" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="interaction.cpp" />
+    <ClCompile Include="intro_screen.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="timer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cursor.png" />
+    <Image Include="cursor_entry.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

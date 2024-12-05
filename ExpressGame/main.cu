@@ -7,6 +7,9 @@
 #include "interaction.hpp"
 #include "timer.hpp"
 #include "particle_simulation.cuh"
+#include "cursor.hpp"
+#include "intro_screen.hpp"
+#include <iostream>
 
 int main() {
     /*
@@ -14,11 +17,20 @@ int main() {
      */
     const int screenWidth = 800;
     const int screenHeight = 600;
-    const int numParticles = 1000;        // Number of particles
+   
     const int numObstacles = 3;           // Number of obstacles
     const float influenceRadius = 150.0f; // Mouse influence radius
     const float targetRadius = 25.0f;     // Target radius
-    const float duration = 60.0f;
+
+    float duration = 2.0f;
+    int numParticles = 1000;        // Number of particles
+
+
+    
+    char* themeMusic = "cc_red_alert.mp3";
+    char* winMusic = "gta_mission_passed.mp3";
+    char* loseMusic = "mission_failed_mw3.mp3";
+
 
     // Obstacles definition
     Obstacle obstacles[numObstacles] = {
@@ -27,12 +39,15 @@ int main() {
         {600.0f, 100.0f, 80.0f, 200.0f}
     };
 
+
     /*
      * Initialization
      */
     InitGameWindow(screenWidth, screenHeight);
     InitAudioDevice();
-    Music music = LoadMusicStream("hyper.mp3");
+
+    
+    
 
     SetTargetFPS(60);
 
@@ -40,10 +55,43 @@ int main() {
     bool isTryAgain;
 
     do {
+        // Create intro screen
+        IntroScreen intro("A Game About Particules ...", "cursor_entry.png");
+
+        // Show intro screen
+        IntroScreenResult result = intro.Show();
+
+        switch (result.difficulty) {
+        case 0:
+            duration = 100;
+            loseMusic = "game_over.mp3";
+            winMusic = "cantina.mp3";
+            break;
+        case 1:
+            duration = 80;
+            loseMusic = "mission_lost.mp3";
+            winMusic = "CourseClear.mp3";
+            break;
+        case 2:
+            duration = 60;
+            loseMusic = "mission_failed_mw3.mp3";
+            winMusic = "gta_mission_passed.mp3";
+            break;
+
+        }
+            
+
+        Music music = LoadMusicStream(themeMusic);
         isTryAgain = false;
         // Initialize game state
         Timer timer(duration);
         PlayMusicStream(music);
+
+        Cursor cursor = Cursor();
+        cursor.texture = LoadTexture("cursor.png");
+        cursor.rect = { 0.0f, 0.0f, 30.0f, 40.0f };
+        cursor.position = { 0.0f, 0.0f };
+        HideCursor();
 
         // CUDA memory allocations
         Particle* deviceParticles = InitializeParticlesGPU(numParticles, screenWidth, screenHeight, obstacles, numObstacles);
@@ -59,7 +107,7 @@ int main() {
         // Game variables
         float targetX = screenWidth / 2.0f;
         float targetY = screenHeight / 2.0f;
-        float speed = 1.0f;
+        float speed = 3.0f;
         bool victory = false;
 
         // Main game loop
@@ -67,11 +115,15 @@ int main() {
             float mouseX = 0.0f, mouseY = 0.0f;
             bool attract = false, repel = false;
 
+            
+
             // Update logic
             timer.Update();
             UpdateMusicStream(music);
             ProcessUserInput(speed, mouseX, mouseY, attract, repel);
 
+            cursor.position = Vector2{mouseX, mouseY};
+            
             // CUDA kernel call for particle updates
             int blockSize = 256;
             int numBlocks = (numParticles + blockSize - 1) / blockSize;
@@ -88,6 +140,9 @@ int main() {
             // Rendering
             BeginDrawing();
             ClearBackground(BLACK);
+
+            DrawTextureRec(cursor.texture, cursor.rect, cursor.position, WHITE);
+
 
             DrawCircle((int)targetX, (int)targetY, targetRadius, RED);
             std::vector<Particle> hostParticles(numParticles);
@@ -114,19 +169,33 @@ int main() {
             // Timer expired
             if (timer.IsTimeUp()) break;
         }
-
+        //StopMusicStream(music);
+        UnloadMusicStream(music);
+        // Victory or defeat screen
         // Victory or defeat screen
         if (victory) {
+            music = LoadMusicStream(winMusic);
+            PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
                 DrawVictoryScreen(screenWidth, screenHeight);
                 if (IsKeyDown(KEY_R)) isTryAgain = true;
+
+                UpdateMusicStream(music); // Update music stream to ensure proper playback
             }
+            UnloadMusicStream(music);
+            //StopMusicStream(music);
         }
         else {
+            music = LoadMusicStream(loseMusic);
+            PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
                 DrawDefeatScreen(screenWidth, screenHeight);
                 if (IsKeyDown(KEY_R)) isTryAgain = true;
+
+                UpdateMusicStream(music); // Update music stream to ensure proper playback
             }
+            //StopMusicStream(music);
+            UnloadMusicStream(music);
         }
 
         // Free resources
@@ -137,7 +206,7 @@ int main() {
     } while (isTryAgain);
 
     // Final cleanup
-    UnloadMusicStream(music);
+    
     CloseAudioDevice();
     CloseWindow();
 
