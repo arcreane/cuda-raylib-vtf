@@ -4,6 +4,8 @@
 #include <curand_kernel.h>
 #include <cmath>
 
+#define BORDER_OFFSET 0
+
 // Structure pour une particule
 struct Particle {
     float x, y;         // Position

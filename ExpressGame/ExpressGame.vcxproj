@@ -106,9 +106,14 @@
     <ClInclude Include="timer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Media Include="CourseClear.mp3" />
+    <Media Include="cantina.mp3" />
     <Media Include="game_over.mp3" />
+    <Media Include="gta_mission_passed.mp3" />
+    <Media Include="halo_theme.mp3" />
     <Media Include="hyper.mp3" />
     <Media Include="mission_failed_mw3.mp3" />
+    <Media Include="mission_lost.mp3" />
     <Media Include="objective_complete.mp3" />
     <Media Include="successful_mission.mp3" />
   </ItemGroup>

@@ -60,8 +60,8 @@ __global__ void UpdateParticlesWithMotion(Particle* particles, int numParticles,
         }
 
         // Gestion des bords de l'écran
-        if (particles[idx].x < 0 || particles[idx].x > 800) particles[idx].dx *= -1.0f;
-        if (particles[idx].y < 0 || particles[idx].y > 600) particles[idx].dy *= -1.0f;
+        if (particles[idx].x < BORDER_OFFSET || particles[idx].x > 800- BORDER_OFFSET) particles[idx].dx *= -1.0f;
+        if (particles[idx].y < BORDER_OFFSET || particles[idx].y > 600- BORDER_OFFSET) particles[idx].dy *= -1.0f;
     }
 }
 

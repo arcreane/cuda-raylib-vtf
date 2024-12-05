@@ -9,6 +9,7 @@
 #include "particle_simulation.cuh"
 #include "cursor.hpp"
 #include "intro_screen.hpp"
+#include <iostream>
 
 int main() {
     /*
@@ -16,11 +17,20 @@ int main() {
      */
     const int screenWidth = 800;
     const int screenHeight = 600;
-    const int numParticles = 1000;        // Number of particles
+   
     const int numObstacles = 3;           // Number of obstacles
     const float influenceRadius = 150.0f; // Mouse influence radius
     const float targetRadius = 25.0f;     // Target radius
-    const float duration = 2.0f;
+
+    float duration = 2.0f;
+    int numParticles = 1000;        // Number of particles
+
+
+    
+    char* themeMusic = "cc_red_alert.mp3";
+    char* winMusic = "gta_mission_passed.mp3";
+    char* loseMusic = "mission_failed_mw3.mp3";
+
 
     // Obstacles definition
     Obstacle obstacles[numObstacles] = {
@@ -46,12 +56,32 @@ int main() {
 
     do {
         // Create intro screen
-        IntroScreen intro("Space Particle Collector", "cursor_entry.png");
+        IntroScreen intro("A Game About Particules ...", "cursor_entry.png");
 
         // Show intro screen
         IntroScreenResult result = intro.Show();
 
-        Music music = LoadMusicStream("hyper.mp3");
+        switch (result.difficulty) {
+        case 0:
+            duration = 100;
+            loseMusic = "game_over.mp3";
+            winMusic = "cantina.mp3";
+            break;
+        case 1:
+            duration = 80;
+            loseMusic = "mission_lost.mp3";
+            winMusic = "CourseClear.mp3";
+            break;
+        case 2:
+            duration = 60;
+            loseMusic = "mission_failed_mw3.mp3";
+            winMusic = "gta_mission_passed.mp3";
+            break;
+
+        }
+            
+
+        Music music = LoadMusicStream(themeMusic);
         isTryAgain = false;
         // Initialize game state
         Timer timer(duration);
@@ -77,7 +107,7 @@ int main() {
         // Game variables
         float targetX = screenWidth / 2.0f;
         float targetY = screenHeight / 2.0f;
-        float speed = 1.0f;
+        float speed = 3.0f;
         bool victory = false;
 
         // Main game loop
@@ -143,8 +173,8 @@ int main() {
         UnloadMusicStream(music);
         // Victory or defeat screen
         // Victory or defeat screen
-        if (!victory) {
-            music = LoadMusicStream("objective_complete.mp3");
+        if (victory) {
+            music = LoadMusicStream(winMusic);
             PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
                 DrawVictoryScreen(screenWidth, screenHeight);
@@ -156,7 +186,7 @@ int main() {
             //StopMusicStream(music);
         }
         else {
-            music = LoadMusicStream("mission_failed_mw3.mp3");
+            music = LoadMusicStream(loseMusic);
             PlayMusicStream(music);
             while (!WindowShouldClose() && !isTryAgain) {
                 DrawDefeatScreen(screenWidth, screenHeight);
