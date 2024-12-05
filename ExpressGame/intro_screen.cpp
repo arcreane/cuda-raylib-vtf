@@ -51,30 +51,48 @@ IntroScreenResult IntroScreen::Show() {
         const char* difficulties[] = { "Easy", "Medium", "Hard" };
         Color difficultyColors[] = { GREEN, BLUE, RED };
 
-        const int difficultyY = GetScreenHeight() / 2 + 150; // Adjusted position
+        const int difficultyY = GetScreenHeight() / 2 + 120; // Adjusted position
         const int difficultySpacing = 220; // Spacing between difficulty texts
         const int startX = GetScreenWidth() / 2 - difficultySpacing; // Adjusted centering
         DrawText(
             difficulties[0],
             startX + 0* difficultySpacing,
-            difficultyY,
+            difficultyY-30,
             30,
             (0 == currentDifficulty) ? difficultyColors[0] : GRAY
         );
         DrawText(
             difficulties[1],
             startX + 1 * difficultySpacing-45,
-            difficultyY,
+            difficultyY - 30,
             30,
             (1 == currentDifficulty) ? difficultyColors[1] : GRAY
         );
         DrawText(
             difficulties[2],
             startX + 2 * difficultySpacing-60,
-            difficultyY,
+            difficultyY - 30,
             30,
             (2 == currentDifficulty) ? difficultyColors[2] : GRAY
         );
+
+        DrawText(
+            "Use Arrow Keys (Left/Right)",
+            GetScreenWidth() / 2 - MeasureText("Use Arrow Keys (Left/Right)", 20) / 2,
+            difficultyY+20,
+            20,
+            ORANGE
+        );
+
+        DrawText(
+            "Press ENTER key when you are ready",
+            GetScreenWidth() / 2 - MeasureText("Press ENTER key when you are ready", 30) / 2,
+            difficultyY + 100,
+            30,
+            WHITE
+        );
+
+        
         
         
 
