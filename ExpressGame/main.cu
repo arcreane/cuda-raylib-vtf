@@ -23,7 +23,7 @@ int main() {
     const float targetRadius = 25.0f;     // Target radius
 
     float duration = 2.0f;
-    int numParticles = 1000;        // Number of particles
+    int numParticles = 1001;        // Number of particles
 
 
     
@@ -132,7 +132,7 @@ int main() {
 
             // Copy score from GPU and check victory
             cudaMemcpy(&hostScore, deviceScore, sizeof(int), cudaMemcpyDeviceToHost);
-            if (hostScore >= numParticles) {
+            if (hostScore >= numParticles - 1) {
                 victory = true;
                 break;
             }
