@@ -66,16 +66,19 @@ int main() {
             duration = 100;
             loseMusic = "game_over.mp3";
             winMusic = "cantina.mp3";
+            themeMusic = "hyper.mp3";
             break;
         case 1:
             duration = 80;
             loseMusic = "mission_lost.mp3";
             winMusic = "CourseClear.mp3";
+            themeMusic = "terran.mp3";
             break;
         case 2:
             duration = 60;
             loseMusic = "mission_failed_mw3.mp3";
             winMusic = "gta_mission_passed.mp3";
+            themeMusic = "cc_red_alert.mp3";
             break;
 
         }
